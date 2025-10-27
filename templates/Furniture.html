@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гришти Максим. {% block lab %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lab1/main.css')}}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='lab1/walter.jpg') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='lab1/walter.jpg') }}">
+    <style>
+        .furniture-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .furniture-item {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .furniture-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .furniture-item h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+        .furniture-item p {
+            color: #666;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Мебель</h1>
+    <div class="furniture-container">
+        {% for item in furniture %}
+        <div class="furniture-item">
+            <img src="{{ url_for('static', filename=item.img) }}" alt="{{ item.name }}">
+            <div>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.desc }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <footer>
+        &copy; Гришти Максим, ФБИ-33, 3 курс, 2025
+    </footer>
+</body>
+</html>
