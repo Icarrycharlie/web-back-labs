@@ -111,8 +111,8 @@ def tree():
 users = [
     {'login': 'alex', 'password': '123', 'name': 'Алексей Петров', 'gender': 'male'},
     {'login': 'bob', 'password': '555', 'name': 'Боб Марли', 'gender': 'male'},
-    {'login': 'andrey', 'password': '666', 'name': 'Андрей Горшков', 'gender': 'male'},
-    {'login': 'denis', 'password': '999', 'name': 'Денис Сидоров', 'gender': 'male'},
+    {'login': 'olga', 'password': '444', 'name': 'Ольга Смирнова', 'gender': 'female'},
+    {'login': 'viktor', 'password': '222', 'name': 'Виктор Попов', 'gender': 'male'},
 ]
 
 @lab4.route('/lab4/login', methods=['GET', 'POST'])
