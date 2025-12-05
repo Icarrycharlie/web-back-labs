@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block script %}
+<style>
+
+    body {
+        background: #fdf7f1;
+        color: #3a2e2a;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: #8c3f15;
+        margin-bottom: 25px;
+        padding-bottom: 12px;
+        border-bottom: 4px solid #d87a44;
+        letter-spacing: -0.5px;
+    }
+
+    .btn-refresh {
+        background: linear-gradient(135deg, #d87a44, #b95d28);
+        color: #fff;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s;
+        margin-bottom: 20px;
+        font-size: 15px;
+        box-shadow: 0 4px 10px rgba(187, 101, 45, 0.2);
+    }
+
+    .btn-refresh:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #c86834, #9e4f22);
+        box-shadow: 0 6px 14px rgba(187, 101, 45, 0.3);
+    }
+
+    .office-list {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .office-item {
+        background: #fff;
+        border-radius: 18px;
+        padding: 24px 28px;
+        border: 1px solid #e8d9cc;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        transition: 0.25s;
+        position: relative;
+    }
+
+    .office-item:hover {
+        transform: scale(1.015);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .office-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .office-number {
+        font-size: 22px;
+        font-weight: 800;
+        color: #5d2d16;
+    }
+
+    .office-status {
+        font-size: 15px;
+        color: #6b5850;
+        font-weight: 500;
+    }
+
+    .status-free {
+        color: #3e8e41;
+        font-weight: 700;
+    }
+
+    .status-occupied {
+        color: #c62828;
+        font-weight: 700;
+    }
+
+    .office-price {
+        font-size: 18px;
+        font-weight: 700;
+        color: #b55a1a;
+        margin-top: 5px;
+    }
+
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 15px;
+        transition: 0.25s;
+        min-width: 150px;
+        text-align: center;
+        color: white;
+    }
+
+    .btn-book {
+        background: #3e8e41;
+        box-shadow: 0 3px 8px rgba(62, 142, 65, 0.25);
+    }
+
+    .btn-book:hover {
+        background: #357a38;
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel {
+        background: #c62828;
+        box-shadow: 0 3px 8px rgba(198, 40, 40, 0.25);
+    }
+
+    .btn-cancel:hover {
+        background: #a11f1f;
+        transform: translateY(-2px);
+    }
+
+    .occupied-info {
+        font-size: 14px;
+        color: #8c7e77;
+        padding-top: 3px;
+        font-style: italic;
+    }
+
+    .total-cost {
+        margin-top: 40px;
+        background: #fff8f1;
+        padding: 26px;
+        border-radius: 16px;
+        border-left: 8px solid #d87a44;
+        box-shadow: 0 4px 14px rgba(187, 101, 45, 0.18);
+    }
+
+    .total-cost h3 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #7b3b1f;
+        font-weight: 700;
+    }
+
+    .total-cost strong {
+        font-size: 28px;
+        font-weight: 900;
+        color: #9b4a22;
+    }
+
+</style>
+
+
+
+<script>
+function getOfficeList() {
+    const url = "/lab6/json-rpc-api/";
+    const json = {
+        "jsonrpc": "2.0",
+        "method": "info",
+        "id": Math.round(Math.random()*1000)
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(json)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            alert("Ошибка: " + data.error.message);
+            return;
+        }
+
+        const list = data.result;
+        const ul = document.getElementById("office-list");
+        ul.innerHTML = "";
+
+        let total = 0;
+        const login = "{{ session.get('login', '') }}";
+
+        for (let office of list) {
+            const li = document.createElement("li");
+            li.className = "office-item";
+
+            const info = document.createElement("div");
+            info.className = "office-info";
+
+            info.innerHTML = `
+                <div class="office-number">Офис №${office.number}</div>
+                <div class="office-status">
+                    Статус: <span class="${office.tenant ? 'status-occupied' : 'status-free'}">
+                    ${office.tenant ? "Занят ("+office.tenant+")" : "Свободен"}</span>
+                </div>
+                <div class="office-price">${office.price} руб./мес</div>
+            `;
+
+            li.appendChild(info);
+
+            const buttons = document.createElement("div");
+            buttons.className = "action-buttons";
+
+            if (!office.tenant) {
+                const btn = document.createElement("button");
+                btn.className = "btn btn-book";
+                btn.innerText = "Зарезервировать";
+                btn.onclick = () => booking(office.number);
+                buttons.appendChild(btn);
+            } else if (office.tenant === login) {
+                total += office.price;
+
+                const btn = document.createElement("button");
+                btn.className = "btn btn-cancel";
+                btn.innerText = "Освободить";
+                btn.onclick = () => cancelBooking(office.number);
+                buttons.appendChild(btn);
+            } else {
+                const div = document.createElement("div");
+                div.innerText = "Занят другим";
+                div.style.color = "#777";
+                buttons.appendChild(div);
+            }
+
+            li.appendChild(buttons);
+            ul.appendChild(li);
+        }
+
+        updateTotalCost(total);
+    })
+    .catch(err => alert("Ошибка запроса"));
+}
+
+function booking(num) {
+    const url = "/lab6/json-rpc-api/";
+    const json = {
+        "jsonrpc": "2.0",
+        "method": "booking",
+        "params": num,
+        "id": Math.round(Math.random()*1000)
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(json)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            switch(data.error.code) {
+                case 1: alert("Вы не авторизованы"); break;
+                case 2: alert("Офис уже занят"); break;
+                default: alert("Ошибка");
+            }
+            return;
+        }
+        getOfficeList();
+    });
+}
+
+function cancelBooking(num) {
+    const url = "/lab6/json-rpc-api/";
+    const json = {
+        "jsonrpc": "2.0",
+        "method": "cancelation",
+        "params": num,
+        "id": Math.round(Math.random()*1000)
+    };
+
+    fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(json)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            switch(data.error.code) {
+                case 1: alert("Не авторизованы"); break;
+                case 3: alert("Офис и так свободен"); break;
+                case 4: alert("Это не ваш офис"); break;
+                case 5: alert("Офис не найден"); break;
+            }
+            return;
+        }
+        getOfficeList();
+    });
+}
+
+function updateTotalCost(total) {
+    const div = document.getElementById("total-cost");
+    if (total > 0) {
+        div.innerHTML = `
+            <div class="total-cost">
+                <h3>Общая стоимость аренды</h3>
+                <strong>${total} руб./мес</strong>
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="total-cost" style="background:#f2f2f2; border-left-color:#aaa;">
+                <h3>У вас нет арендованных офисов</h3>
+            </div>
+        `;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", getOfficeList);
+</script>
+{% endblock %}
+
+{% block lab %}
+Лабораторная работа 6
+{% endblock %}
+
+{% block main %}
+<h1>Аренда офисов</h1>
+
+<button onclick="getOfficeList()" class="btn btn-refresh">Обновить список</button>
+
+{% if session.get('login') %}
+    <p>Вы вошли как: <b>{{ session.get('login') }}</b></p>
+{% else %}
+    <p style="color:red;">Для аренды необходимо авторизоваться</p>
+{% endif %}
+
+<ul id="office-list" class="office-list"></ul>
+
+<div id="total-cost"></div>
+{% endblock %}
