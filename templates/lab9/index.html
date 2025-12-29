@@ -1,0 +1,1308 @@
+{% extends "base.html" %}
+{% block lab %}Лабораторная работа 9{% endblock %}
+
+{% block script %}
+<style>
+    :root {
+    --snowflake-color: #e3f2fd;
+    --box-color: #ff4081;
+    --box-opened-color: #00c853;
+    --gold-color: #ffd600;
+    --green-color: #00e676;
+    --red-color: #ff5252;
+    --blue-dark: #1a237e;
+    --purple-light: #7c4dff;
+    --teal: #00bcd4;
+    --pink: #f50057;
+    --orange: #ff9100;
+}
+
+body {
+    background: linear-gradient(135deg, #0d47a1 0%, #311b92 50%, #1a237e 100%);
+    background-attachment: fixed;
+    color: white;
+    font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Анимированный фон с мерцающими звездами */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(255, 214, 0, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 60% 70%, rgba(255, 64, 129, 0.1) 1px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(124, 77, 255, 0.1) 1px, transparent 1px);
+    background-size: 300px 300px;
+    animation: stars 20s linear infinite;
+    z-index: -2;
+}
+
+@keyframes stars {
+    from { background-position: 0 0; }
+    to { background-position: 300px 300px; }
+}
+
+.new-year-header {
+    text-align: center;
+    padding: 25px;
+    background: linear-gradient(135deg, 
+        rgba(255, 64, 129, 0.9) 0%, 
+        rgba(124, 77, 255, 0.7) 50%, 
+        rgba(255, 214, 0, 0.8) 100%);
+    border-radius: 0 0 25px 25px;
+    margin-bottom: 25px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 4px solid var(--gold-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.new-year-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--gold-color), 
+        var(--pink), 
+        var(--purple-light), 
+        var(--gold-color), 
+        transparent);
+    animation: headerGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes headerGlow {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+}
+
+.new-year-header h1 {
+    font-size: 3em;
+    color: white;
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 214, 0, 0.5);
+    margin: 0;
+    padding: 15px;
+    background: linear-gradient(45deg, #fff, var(--gold-color), #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    animation: titleShine 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleShine {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.3); }
+}
+
+.new-year-header p {
+    font-size: 1.3em;
+    opacity: 0.95;
+    margin-top: 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px 25px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.snowflakes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.snowflake {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(0.5px);
+    animation: fall linear infinite, fadeIn 1s forwards;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.snowflake::before {
+    content: '❄';
+    position: absolute;
+    font-size: 40%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.6;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    to { opacity: 0.7; }
+}
+
+.stats-panel {
+    display: flex;
+    justify-content: space-around;
+    max-width: 850px;
+    margin: 25px auto;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid rgba(255, 214, 0, 0.3);
+    box-shadow: 
+        0 10px 35px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--pink), 
+        var(--purple-light), 
+        var(--teal), 
+        var(--orange), 
+        transparent);
+}
+
+.stat-card {
+    text-align: center;
+    padding: 20px 30px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    min-width: 160px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--gold-color);
+    box-shadow: 0 15px 30px rgba(255, 214, 0, 0.2);
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent);
+    transition: left 0.6s;
+}
+
+.stat-card:hover::after {
+    left: 100%;
+}
+
+.stat-value {
+    font-size: 2.8em;
+    font-weight: 800;
+    color: var(--gold-color);
+    text-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(255, 214, 0, 0.4);
+    margin-bottom: 5px;
+    background: linear-gradient(45deg, #ffd600, #ffea00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+.gifts-area {
+    position: relative;
+    min-height: 650px;
+    max-width: 1250px;
+    margin: 30px auto;
+    background: 
+        linear-gradient(135deg, 
+            rgba(26, 35, 126, 0.7) 0%, 
+            rgba(48, 63, 159, 0.5) 100%),
+        radial-gradient(circle at 50% 0%, rgba(255, 214, 0, 0.1) 0%, transparent 50%);
+    border-radius: 25px;
+    padding: 35px;
+    border: 3px solid rgba(255, 214, 0, 0.3);
+    box-shadow: 
+        inset 0 0 60px rgba(0, 0, 0, 0.5),
+        0 20px 50px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+/* НОВЫЙ ДИЗАЙН ПОДАРОЧНЫХ КОРОБОК */
+.gift-box {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+    z-index: 10;
+    transform-origin: center;
+    perspective: 1000px;
+    border-radius: 20px;
+}
+
+/* ЗАКРЫТЫЕ КОРОБКИ - разные цвета и узоры */
+.gift-box.closed {
+    background: 
+        linear-gradient(135deg, 
+            var(--box-color) 0%, 
+            #ff80ab 50%, 
+            var(--box-color) 100%);
+    border: 4px solid var(--gold-color);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.4),
+        inset 0 -8px 25px rgba(0, 0, 0, 0.3),
+        0 0 0 2px rgba(255, 255, 255, 0.1);
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: hidden;
+}
+
+.gift-box.closed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.1) 10px,
+            rgba(255, 255, 255, 0.1) 20px
+        );
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.gift-box.closed:hover {
+    transform: scale(1.2) rotate(5deg) translateY(-10px);
+    box-shadow: 
+        0 20px 50px rgba(255, 128, 171, 0.6),
+        inset 0 -8px 25px rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(255, 214, 0, 0.8);
+    border-color: #fff;
+}
+
+/* ЗАКРЫТЫЕ КОРОБКИ с разными цветами (для разнообразия) */
+.gift-box[data-id="0"].closed { --box-color: #ff4081; }
+.gift-box[data-id="1"].closed { --box-color: #7c4dff; }
+.gift-box[data-id="2"].closed { --box-color: #00bcd4; }
+.gift-box[data-id="3"].closed { --box-color: #ff9100; }
+.gift-box[data-id="4"].closed { --box-color: #00e676; }
+.gift-box[data-id="5"].closed { --box-color: #ff5252; }
+.gift-box[data-id="6"].closed { --box-color: #ffd600; }
+.gift-box[data-id="7"].closed { --box-color: #f50057; }
+.gift-box[data-id="8"].closed { --box-color: #651fff; }
+.gift-box[data-id="9"].closed { --box-color: #00e5ff; }
+
+/* ЗАКРЫТЫЕ КОРОБКИ с замком */
+.gift-box.locked {
+    background: 
+        linear-gradient(135deg, 
+            #424242 0%, 
+            #616161 50%, 
+            #424242 100%);
+    border: 4px dashed #9e9e9e;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.gift-box.locked::before {
+    background: 
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 5px,
+            rgba(255, 255, 255, 0.05) 5px,
+            rgba(255, 255, 255, 0.05) 10px
+        );
+}
+
+/* ОТКРЫТЫЕ КОРОБКИ */
+.gift-box.opened {
+    background: 
+        linear-gradient(135deg, 
+            var(--box-opened-color) 0%, 
+            #69f0ae 50%, 
+            var(--box-opened-color) 100%);
+    border: 4px dashed var(--gold-color);
+    cursor: default;
+    opacity: 0.7;
+    transform: scale(0.9) rotate(-5deg);
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+/* УЛУЧШЕННАЯ ЛЕНТОЧКА */
+.gift-ribbon {
+    position: absolute;
+    width: 100%;
+    height: 30px;
+    background: 
+        linear-gradient(90deg, 
+            var(--gold-color) 0%, 
+            #fff176 50%, 
+            var(--gold-color) 100%);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    box-shadow: 
+        0 3px 15px rgba(0, 0, 0, 0.3),
+        inset 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.gift-ribbon::before,
+.gift-ribbon::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    top: -15px;
+}
+
+.gift-ribbon::before {
+    border-width: 25px 0 25px 30px;
+    border-color: transparent transparent transparent var(--gold-color);
+    left: 0;
+    filter: drop-shadow(2px 0 5px rgba(0,0,0,0.3));
+}
+
+.gift-ribbon::after {
+    border-width: 25px 30px 25px 0;
+    border-color: transparent var(--gold-color) transparent transparent;
+    right: 0;
+    filter: drop-shadow(-2px 0 5px rgba(0,0,0,0.3));
+}
+
+/* ДОПОЛНИТЕЛЬНАЯ ЛЕНТОЧКА (вертикальная) */
+.gift-ribbon-vertical {
+    position: absolute;
+    width: 30px;
+    height: 100%;
+    background: 
+        linear-gradient(to bottom, 
+            var(--gold-color) 0%, 
+            #fff176 50%, 
+            var(--gold-color) 100%);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    box-shadow: 
+        0 0 10px rgba(0, 0, 0, 0.2),
+        inset 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.gift-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3.2em;
+    color: white;
+    text-shadow: 
+        3px 3px 6px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.5);
+    z-index: 3;
+    user-select: none;
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+}
+
+/* Анимация при наведении на метку */
+.gift-box.closed:hover .gift-label {
+    animation: labelBounce 0.5s ease infinite alternate;
+}
+
+@keyframes labelBounce {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    animation: modalFadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(10px);
+}
+
+@keyframes modalFadeIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.8) rotate(-5deg);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) rotate(0);
+    }
+}
+
+.modal-content {
+    background: 
+        linear-gradient(135deg, 
+            #1a237e 0%, 
+            #311b92 50%, 
+            #1a237e 100%);
+    padding: 50px;
+    border-radius: 30px;
+    max-width: 550px;
+    width: 90%;
+    text-align: center;
+    border: 8px solid var(--gold-color);
+    box-shadow: 
+        0 0 80px rgba(255, 214, 0, 0.6),
+        inset 0 0 40px rgba(255, 255, 255, 0.2),
+        0 20px 60px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    animation: modalGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes modalGlow {
+    from { box-shadow: 0 0 80px rgba(255, 214, 0, 0.6); }
+    to { box-shadow: 0 0 100px rgba(255, 128, 171, 0.8); }
+}
+
+.modal-content::before {
+    content: '🎄✨🎁';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    font-size: 180px;
+    opacity: 0.15;
+    transform: rotate(45deg);
+    animation: float 8s ease-in-out infinite;
+}
+
+.modal-title {
+    color: var(--gold-color);
+    font-size: 2.5em;
+    margin-bottom: 30px;
+    text-shadow: 
+        0 0 15px rgba(255, 214, 0, 0.7),
+        0 0 30px rgba(255, 128, 171, 0.5);
+    background: linear-gradient(45deg, #ffd600, #fff, #ffd600);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titlePulse 2s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.gift-image {
+    max-width: 280px;
+    max-height: 280px;
+    margin: 25px auto;
+    border-radius: 20px;
+    border: 5px solid var(--gold-color);
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.3);
+    background: white;
+    padding: 15px;
+    transform: rotate(-2deg);
+    transition: transform 0.5s;
+    animation: giftFloat 4s ease-in-out infinite;
+}
+
+@keyframes giftFloat {
+    0%, 100% { transform: rotate(-2deg) translateY(0); }
+    50% { transform: rotate(-2deg) translateY(-10px); }
+}
+
+.gift-image:hover {
+    transform: rotate(2deg) scale(1.05);
+}
+
+.congratulation-text {
+    font-size: 1.4em;
+    line-height: 1.7;
+    margin: 30px 0;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    border-left: 5px solid var(--gold-color);
+    position: relative;
+    font-style: italic;
+    box-shadow: 
+        inset 0 0 20px rgba(0, 0, 0, 0.2),
+        0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.congratulation-text::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    font-size: 4em;
+    color: var(--gold-color);
+    opacity: 0.3;
+    font-family: serif;
+}
+
+.modal-close {
+    background: 
+        linear-gradient(45deg, 
+            var(--gold-color) 0%, 
+            #ffeb3b 50%, 
+            var(--gold-color) 100%);
+    color: #1a237e;
+    border: none;
+    padding: 18px 45px;
+    border-radius: 35px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 1.2em;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-close:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 
+        0 12px 35px rgba(255, 214, 0, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.5);
+    letter-spacing: 2px;
+}
+
+.message-toast {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    padding: 25px 35px;
+    border-radius: 15px;
+    color: white;
+    font-weight: bold;
+    display: none;
+    z-index: 2001;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    animation: 
+        toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+        toastSlideOut 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045) 2.7s forwards;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform-origin: top right;
+}
+
+@keyframes toastSlideIn {
+    from { 
+        transform: translateX(100%) scale(0.8);
+        opacity: 0;
+    }
+    to { 
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes toastSlideOut {
+    from { 
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    to { 
+        transform: translateX(100%) scale(0.8);
+        opacity: 0;
+    }
+}
+
+.message-success {
+    background: 
+        linear-gradient(135deg, 
+            var(--box-opened-color) 0%, 
+            #00e676 100%);
+    border-left: 6px solid #69f0ae;
+}
+
+.message-error {
+    background: 
+        linear-gradient(135deg, 
+            var(--red-color) 0%, 
+            #ff5252 100%);
+    border-left: 6px solid #ff8a80;
+}
+
+.message-warning {
+    background: 
+        linear-gradient(135deg, 
+            #ff9100 0%, 
+            #ffb74d 100%);
+    border-left: 6px solid #ffcc80;
+}
+
+.christmas-lights {
+    position: absolute;
+    width: 100%;
+    height: 40px;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    border-radius: 25px 25px 0 0;
+    z-index: 1;
+}
+
+.light {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    animation: 
+        lightTwinkle 1.5s infinite alternate,
+        lightColorChange 6s infinite;
+    top: 10px;
+    filter: 
+        drop-shadow(0 0 5px currentColor)
+        drop-shadow(0 0 10px currentColor);
+}
+
+@keyframes lightTwinkle {
+    0%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+    50% { 
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes lightColorChange {
+    0% { color: #ff4081; }
+    25% { color: #7c4dff; }
+    50% { color: #00bcd4; }
+    75% { color: #ffd600; }
+    100% { color: #ff4081; }
+}
+
+.instructions {
+    text-align: center;
+    margin-top: 25px;
+    padding: 20px;
+    background: 
+        linear-gradient(135deg, 
+            rgba(255, 214, 0, 0.15) 0%, 
+            rgba(255, 64, 129, 0.15) 100%);
+    border-radius: 15px;
+    max-width: 850px;
+    margin: 25px auto;
+    border: 2px solid rgba(255, 214, 0, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.instructions p {
+    margin: 8px 0;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+}
+
+.auth-panel {
+    text-align: center;
+    padding: 20px;
+    background: 
+        linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.12) 0%, 
+            rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 15px;
+    max-width: 650px;
+    margin: 25px auto;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255, 214, 0, 0.3);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.auth-panel span {
+    font-size: 1.2em;
+    margin-right: 20px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.auth-panel strong {
+    color: var(--gold-color);
+    text-shadow: 0 0 10px rgba(255, 214, 0, 0.5);
+}
+
+.auth-button {
+    background: 
+        linear-gradient(45deg, 
+            var(--gold-color) 0%, 
+            #ffeb3b 100%);
+    color: #1a237e;
+    border: none;
+    padding: 10px 25px;
+    margin: 0 8px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 5px 20px rgba(0, 0, 0, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 8px 25px rgba(255, 214, 0, 0.4),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    letter-spacing: 1.2px;
+}
+
+.santa-button {
+    text-align: center;
+    margin: 30px 0;
+    position: relative;
+}
+
+.santa-button::before {
+    content: '🎅';
+    position: absolute;
+    left: 50%;
+    top: -40px;
+    transform: translateX(-50%);
+    font-size: 3em;
+    filter: drop-shadow(0 0 10px rgba(255, 214, 0, 0.5));
+    animation: santaFloat 4s ease-in-out infinite;
+}
+
+@keyframes santaFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+.santa-button button {
+    background: 
+        linear-gradient(45deg, 
+            #ff4081 0%, 
+            #ff80ab 50%, 
+            #ff4081 100%);
+    color: white;
+    border: none;
+    padding: 20px 40px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 1.3em;
+    font-weight: 800;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 10px 30px rgba(255, 64, 129, 0.4),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.santa-button button:hover:not(:disabled) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 
+        0 15px 40px rgba(255, 64, 129, 0.6),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+    letter-spacing: 1.5px;
+}
+
+.santa-button button:disabled {
+    background: 
+        linear-gradient(45deg, 
+            #666 0%, 
+            #888 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    opacity: 0.7;
+}
+
+.rules-box {
+    background: 
+        linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.12) 0%, 
+            rgba(255, 255, 255, 0.05) 100%);
+    padding: 25px;
+    border-radius: 20px;
+    max-width: 850px;
+    margin: 30px auto;
+    border: 2px solid rgba(255, 214, 0, 0.3);
+    backdrop-filter: blur(15px);
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.rules-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        #ff4081,
+        #7c4dff,
+        #00bcd4,
+        #00e676,
+        #ffd600);
+}
+
+.rules-box h3 {
+    color: var(--gold-color);
+    margin-top: 0;
+    text-align: center;
+    font-size: 1.8em;
+    text-shadow: 0 0 15px rgba(255, 214, 0, 0.5);
+    margin-bottom: 20px;
+}
+
+.rules-box ul {
+    text-align: left;
+    padding-left: 25px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.rules-box li {
+    margin: 10px 0;
+    padding-left: 10px;
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
+}
+
+.rules-box li::before {
+    content: '🎁';
+    position: absolute;
+    left: -25px;
+    top: 2px;
+}
+
+.rules-box li strong {
+    color: var(--gold-color);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .new-year-header h1 {
+        font-size: 2.2em;
+    }
+    
+    .stats-panel {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        min-width: auto;
+    }
+    
+    .gift-box {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .gift-label {
+        font-size: 2.2em;
+    }
+    
+    .modal-content {
+        padding: 30px 20px;
+    }
+    
+    .modal-title {
+        font-size: 1.8em;
+    }
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="auth-panel">
+    {% if session.get('logged_in') %}
+        <span>Вы вошли как: <strong>{{ session.get('username') }}</strong></span>
+        <button class="auth-button" onclick="window.location.href='/lab9/logout'">Выйти</button>
+    {% else %}
+        <span>Вы не авторизованы</span>
+        <button class="auth-button" onclick="window.location.href='/lab9/login'">Войти</button>
+        <button class="auth-button" onclick="window.location.href='/lab9/register'">Регистрация</button>
+    {% endif %}
+</div>
+
+{% if session.get('logged_in') %}
+<div class="santa-button">
+    <button id="santaButton" onclick="resetBoxes()">🎅 Дед Мороз: наполнить все коробки</button>
+</div>
+{% endif %}
+
+<div class="new-year-header">
+    <h1>Новогодние поздравления</h1>
+    <p>Найдите свои подарки и получите уникальные поздравления!</p>
+</div>
+
+
+<div class="stats-panel">
+    <div class="stat-card">
+        <div class="stat-value" id="openedCount">0</div>
+        <div class="stat-label">Открыто коробок</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="remainingCount">10</div>
+        <div class="stat-label">Осталось коробок</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Максимум можно открыть</div>
+    </div>
+</div>
+
+<div class="gifts-area" id="giftsArea">
+    <div class="christmas-lights" id="lights"></div>
+    <!-- Коробки будут добавлены через JavaScript -->
+</div>
+
+<div class="modal-overlay" id="giftModal">
+    <div class="modal-content">
+        <h2 class="modal-title">🎁 Ваш Новогодний Подарок! 🎁</h2>
+        <img class="gift-image" id="modalGiftImage" src="" alt="Подарок">
+        <div class="congratulation-text" id="modalCongratulation"></div>
+        <button class="modal-close" onclick="closeModal()">Забрать подарок</button>
+    </div>
+</div>
+
+<div class="message-toast" id="messageToast"></div>
+
+<script>
+    // Глобальные переменные
+    let boxesData = [];
+    let openedCount = 0;
+    let remainingCount = 10;
+    let isLoggedIn = false;
+
+    // Создание снежинок
+    function createSnowflakes() {
+        const container = document.createElement('div');
+        container.className = 'snowflakes';
+        document.body.appendChild(container);
+        
+        for (let i = 0; i < 60; i++) {
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            
+            const size = Math.random() * 8 + 4;
+            flake.style.width = `${size}px`;
+            flake.style.height = `${size}px`;
+            flake.style.left = `${Math.random() * 100}%`;
+            flake.style.top = `${Math.random() * -100}px`;
+            flake.style.opacity = Math.random() * 0.6 + 0.2;
+            const duration = Math.random() * 8 + 5;
+            flake.style.animationDuration = `${duration}s`;
+            flake.style.animationDelay = `${Math.random() * 5}s`;
+            
+            container.appendChild(flake);
+        }
+    }
+
+    // Создание гирлянды
+    function createChristmasLights() {
+        const container = document.getElementById('lights');
+        if (!container) return;
+        
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        
+        for (let i = 0; i < 25; i++) {
+            const light = document.createElement('div');
+            light.className = 'light';
+            light.style.left = `${(i * 4)}%`;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            light.style.backgroundColor = color;
+            light.style.animationDelay = `${Math.random() * 2}s`;
+            container.appendChild(light);
+        }
+    }
+
+    // Загрузка коробок с сервера
+    async function loadBoxes() {
+        try {
+            const response = await fetch('/lab9/api/boxes');
+            if (!response.ok) throw new Error('Ошибка загрузки');
+            
+            const data = await response.json();
+            boxesData = data.boxes;
+            openedCount = data.opened_count;
+            remainingCount = data.remaining_count;
+            isLoggedIn = data.logged_in;
+            
+            updateStats();
+            renderBoxes();
+            
+            // Обновляем кнопку Деда Мороза
+            const santaButton = document.getElementById('santaButton');
+            if (santaButton) {
+                santaButton.disabled = !isLoggedIn;
+                if (!isLoggedIn) {
+                    santaButton.title = 'Требуется авторизация';
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки коробок:', error);
+            showMessage('Не удалось загрузить коробки', 'error');
+        }
+    }
+
+    // Отрисовка коробок
+    function renderBoxes() {
+        const container = document.getElementById('giftsArea');
+        if (!container) return;
+        
+        // Удаляем старые коробки, но оставляем гирлянду
+        const boxes = container.querySelectorAll('.gift-box');
+        boxes.forEach(box => box.remove());
+        
+        boxesData.forEach(box => {
+            const boxElement = document.createElement('div');
+            boxElement.className = `gift-box ${box.opened ? 'opened' : box.available ? 'closed' : 'locked'}`;
+            boxElement.style.top = `${box.top}%`;
+            boxElement.style.left = `${box.left}%`;
+            boxElement.dataset.id = box.id;
+            
+            // Добавляем ленточку и метку
+            if (!box.opened && box.available) {
+                const ribbon = document.createElement('div');
+                ribbon.className = 'gift-ribbon';
+                boxElement.appendChild(ribbon);
+            }
+            
+            const label = document.createElement('div');
+            label.className = 'gift-label';
+            if (box.opened) {
+                label.textContent = '🎁';
+                label.title = 'Уже открыто';
+            } else if (!box.available) {
+                label.textContent = '🔒';
+                label.title = 'Требуется авторизация';
+            } else {
+                label.textContent = '?';
+                label.title = 'Нажмите чтобы открыть';
+                boxElement.onclick = () => handleBoxClick(box.id);
+            }
+            
+            boxElement.appendChild(label);
+            container.appendChild(boxElement);
+        });
+    }
+
+    // Обработка клика по коробке
+    async function handleBoxClick(boxId) {
+        try {
+            const response = await fetch('/lab9/api/open', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ box_id: boxId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Показываем подарок
+                showGiftModal(data.congratulation, data.gift);
+                
+                // Обновляем статистику
+                openedCount = data.opened_count;
+                remainingCount = data.remaining_count;
+                updateStats();
+                
+                // Обновляем коробки
+                await loadBoxes();
+                
+                // Сообщение об успехе
+                showMessage(`Вы открыли коробку №${boxId + 1}!`, 'success');
+            } else {
+                showMessage(data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения с сервером', 'error');
+        }
+    }
+
+    // Показать модальное окно с подарком
+    function showGiftModal(congratulation, giftImage) {
+        document.getElementById('modalCongratulation').textContent = congratulation;
+        document.getElementById('modalGiftImage').src = giftImage;
+        document.getElementById('giftModal').style.display = 'flex';
+    }
+
+    // Закрыть модальное окно
+    function closeModal() {
+        document.getElementById('giftModal').style.display = 'none';
+    }
+
+    // Сброс коробок (Дед Мороз)
+    async function resetBoxes() {
+        if (!confirm('🎅 Дед Мороз наполнит все коробки заново!\nВсе ваши открытые коробки будут сброшены.\nПродолжить?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/lab9/api/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showMessage(data.message, 'success');
+                await loadBoxes();
+            } else {
+                showMessage(data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showMessage('Ошибка соединения', 'error');
+        }
+    }
+
+    // Показать сообщение
+    function showMessage(text, type = 'success') {
+        const toast = document.getElementById('messageToast');
+        if (!toast) return;
+        
+        toast.textContent = text;
+        toast.className = `message-toast message-${type}`;
+        toast.style.display = 'block';
+        
+        // Автоматическое скрытие
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    // Обновление статистики
+    function updateStats() {
+        const openedEl = document.getElementById('openedCount');
+        const remainingEl = document.getElementById('remainingCount');
+        
+        if (openedEl) openedEl.textContent = openedCount;
+        if (remainingEl) remainingEl.textContent = remainingCount;
+        
+        // Анимация обновления
+        [openedEl, remainingEl].forEach(el => {
+            if (el) {
+                el.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    el.style.transform = 'scale(1)';
+                }, 300);
+            }
+        });
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        createSnowflakes();
+        createChristmasLights();
+        loadBoxes();
+        
+        // Закрытие модального окна по клику вне его
+        const modal = document.getElementById('giftModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+        
+        // Закрытие модального окна по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    });
+</script>
+{% endblock %}
